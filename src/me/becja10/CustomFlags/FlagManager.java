@@ -47,7 +47,6 @@ public class FlagManager {
 		reloadFlags();
 		
 		String header = "Flags available\n\n";
-//		header += "notntignition: Prevents igniting tnt\n";
 		header += "nomobdamage: Prevent taking damage from mobs\n";
 		header += "nohunger: Prevent losing hunger\n";
 		config.options().header(header);
