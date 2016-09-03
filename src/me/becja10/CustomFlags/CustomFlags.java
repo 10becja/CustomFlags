@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.TravelAgent;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -23,6 +24,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
@@ -73,6 +75,7 @@ public class CustomFlags extends JavaPlugin implements Listener{
 	private final String nohunger = "nohunger";
 	private final String nomobdamage = "nomobdamage";
 	private final String randomores = "randomores";
+	private final String noportals = "noportals";
 	
 	private void loadConfig(){
 		configPath = this.getDataFolder().getAbsolutePath() + File.separator + "config.yml";
@@ -302,7 +305,22 @@ public class CustomFlags extends JavaPlugin implements Listener{
 		}
 	}
 	
+	@EventHandler(priority = EventPriority.LOWEST)
+	public void onTravelByPortal(PlayerPortalEvent event){
+		if(isFlagApplicable(event.getTo(), noportals)){
+			TravelAgent agent = event.getPortalTravelAgent();
+			Location to = agent.findPortal(event.getTo());
+			if(to == null){//it can't find a portal, so it's going to try and create one.
+				event.setTo(event.getTo().getWorld().getSpawnLocation());
+				agent.setCanCreatePortal(false);
+			}
+		}
+	}
+	
 	private boolean isFlagApplicable(Location loc, String flag){
+		if(FlagManager.hasFlag(loc.getWorld().getName(), "__global__", flag))
+			return true;
+		
 		RegionQuery quary = wg.getRegionContainer().createQuery();
 		ApplicableRegionSet set = quary.getApplicableRegions(loc);
 		

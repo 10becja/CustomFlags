@@ -49,6 +49,7 @@ public class FlagManager {
 		String header = "Flags available\n\n";
 		header += "nomobdamage: Prevent taking damage from mobs\n";
 		header += "nohunger: Prevent losing hunger\n";
+		header += "noportals: Prevent nether portals from being generated\n";
 		config.options().header(header);
 		config.options().copyHeader(true);
 		
