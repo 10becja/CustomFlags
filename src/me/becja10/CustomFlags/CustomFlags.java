@@ -25,6 +25,8 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
@@ -76,6 +78,7 @@ public class CustomFlags extends JavaPlugin implements Listener{
 	private final String nomobdamage = "nomobdamage";
 	private final String randomores = "randomores";
 	private final String noportals = "noportals";
+	private final String noteleport = "noteleport";
 	
 	private void loadConfig(){
 		configPath = this.getDataFolder().getAbsolutePath() + File.separator + "config.yml";
@@ -313,6 +316,22 @@ public class CustomFlags extends JavaPlugin implements Listener{
 			if(to == null){//it can't find a portal, so it's going to try and create one.
 				event.setTo(event.getTo().getWorld().getSpawnLocation());
 				agent.setCanCreatePortal(false);
+			}
+		}
+	}
+	
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onTeleport(PlayerTeleportEvent event){
+		if(event.getPlayer().hasPermission("customflags.bypass.noteleport"))
+			return;
+		TeleportCause cause = event.getCause();
+		if(cause == TeleportCause.COMMAND || cause == TeleportCause.PLUGIN){
+			Location to = event.getTo();
+			Location from = event.getFrom();
+			if(isFlagApplicable(to, noteleport) || isFlagApplicable(from, noteleport)){
+				event.getPlayer().sendMessage(ChatColor.RED + "Teleporting to/from this area is not allowed!");
+				event.setCancelled(true);
+				return;
 			}
 		}
 	}

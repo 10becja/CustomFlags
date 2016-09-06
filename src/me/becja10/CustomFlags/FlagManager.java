@@ -50,6 +50,7 @@ public class FlagManager {
 		header += "nomobdamage: Prevent taking damage from mobs\n";
 		header += "nohunger: Prevent losing hunger\n";
 		header += "noportals: Prevent nether portals from being generated\n";
+		header += "noteleport: Prevent any form of teleporting into or out of an area. Add customflags.bypass.noteleport to bypass";
 		config.options().header(header);
 		config.options().copyHeader(true);
 		
