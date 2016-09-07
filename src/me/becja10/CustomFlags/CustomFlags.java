@@ -196,7 +196,7 @@ public class CustomFlags extends JavaPlugin implements Listener{
 			double ticker = 0;
 			if(drop.isBetween(ticker, ticker += explodeChance)){
 				p.sendMessage(ChatColor.YELLOW + "Sparks from your tool ignited built up gas!!");
-				//block.getWorld().createExplosion(block.getLocation(), 5.0f, true);
+				block.getWorld().createExplosion(block.getLocation(), 5.0f, true);
 				return;
 			}
 			else if(drop.isBetween(ticker, ticker += emeraldChance)){
