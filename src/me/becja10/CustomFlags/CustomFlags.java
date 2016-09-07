@@ -274,7 +274,6 @@ public class CustomFlags extends JavaPlugin implements Listener{
 				if(luckThisRound > rng.nextDouble())
 					numDrops++;
 			}
-			System.out.println(drop.value + " " + mat + " " + numDrops);			
 			if(numDrops == 0 || mat == Material.STONE)
 				return;
 			
