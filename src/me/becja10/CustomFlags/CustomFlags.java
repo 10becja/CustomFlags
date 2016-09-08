@@ -284,7 +284,7 @@ public class CustomFlags extends JavaPlugin implements Listener{
 			
 			toDrop = new ItemStack(mat, numDrops);
 			block.setType(Material.AIR);
-			block.getWorld().dropItem(loc, toDrop).setVelocity(new Vector(0, 0, 0));;
+			block.getWorld().dropItem(loc.add(0.5, 0.5, 0.5), toDrop).setVelocity(new Vector(0, 0.01, 0));
 		}
 	}
 	
@@ -355,19 +355,6 @@ public class CustomFlags extends JavaPlugin implements Listener{
 		return false;
 	}
 	
-	
-//	private boolean shouldCancelForTnt(Block b){
-//		if(b.getType() != Material.TNT){
-//			return false;
-//		}
-//		Location loc = b.getLocation();
-//		if(isFlagApplicable(loc, notntignition)){
-//			return true;
-//		}
-//		return false;
-//	}
-	
-	
 	class OreDrop{
 		double value;
 		public OreDrop(double value){
@@ -377,4 +364,5 @@ public class CustomFlags extends JavaPlugin implements Listener{
 			return value >= one && value < two;
 		}
 	}
+	
 }
