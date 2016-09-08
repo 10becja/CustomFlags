@@ -282,7 +282,7 @@ public class CustomFlags extends JavaPlugin implements Listener{
 			
 			toDrop = new ItemStack(mat, numDrops);
 			block.setType(Material.AIR);
-			block.getWorld().dropItemNaturally(block.getLocation(), toDrop);
+			block.getWorld().dropItem(block.getLocation(), toDrop);
 		}
 	}
 	
