@@ -32,6 +32,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.Vector;
 
 import com.sk89q.worldguard.bukkit.RegionQuery;
 import com.sk89q.worldguard.bukkit.WGBukkit;
@@ -192,6 +193,7 @@ public class CustomFlags extends JavaPlugin implements Listener{
 		if(isFlagApplicable(block.getLocation(), randomores) && eligableBlocks.contains(block.getType().toString())){
 			ItemStack inHand = p.getInventory().getItemInMainHand();
 			ItemStack toDrop = null;
+			Location loc = block.getLocation();
 			
 			//figure out what block to drop
 			Material mat = Material.STONE;
@@ -199,7 +201,7 @@ public class CustomFlags extends JavaPlugin implements Listener{
 			double ticker = 0;
 			if(drop.isBetween(ticker, ticker += explodeChance)){
 				p.sendMessage(ChatColor.YELLOW + "Sparks from your tool ignited built up gas!!");
-				block.getWorld().createExplosion(block.getLocation(), 5.0f, true);
+				block.getWorld().createExplosion(loc, 5.0f, true);
 				return;
 			}
 			else if(drop.isBetween(ticker, ticker += emeraldChance)){
@@ -282,7 +284,7 @@ public class CustomFlags extends JavaPlugin implements Listener{
 			
 			toDrop = new ItemStack(mat, numDrops);
 			block.setType(Material.AIR);
-			block.getWorld().dropItem(block.getLocation(), toDrop);
+			block.getWorld().dropItem(loc, toDrop).setVelocity(new Vector(0, 0, 0));;
 		}
 	}
 	
