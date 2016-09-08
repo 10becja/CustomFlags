@@ -8,6 +8,7 @@ import java.util.Random;
 import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.TravelAgent;
@@ -184,9 +185,11 @@ public class CustomFlags extends JavaPlugin implements Listener{
 	
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onBreak(BlockBreakEvent event){
+		Player p = event.getPlayer();
+		if(p.getGameMode() != GameMode.SURVIVAL)
+			return;
 		Block block = event.getBlock();
 		if(isFlagApplicable(block.getLocation(), randomores) && eligableBlocks.contains(block.getType().toString())){
-			Player p = event.getPlayer();
 			ItemStack inHand = p.getInventory().getItemInMainHand();
 			ItemStack toDrop = null;
 			
