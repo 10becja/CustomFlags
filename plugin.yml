@@ -1,5 +1,5 @@
 name: CustomFlags
-version: 1.0
+version: 1.0.1
 main: me.becja10.CustomFlags.CustomFlags
 depend: [WorldGuard]
 description: allows adding custom flags to regions

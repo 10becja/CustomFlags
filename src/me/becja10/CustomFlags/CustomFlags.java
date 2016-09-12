@@ -3,11 +3,13 @@ package me.becja10.CustomFlags;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
+import org.bukkit.DyeColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -29,6 +31,7 @@ import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.material.Dye;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -63,16 +66,16 @@ public class CustomFlags extends JavaPlugin implements Listener{
 	private double ironChance;    private String _ironChance    = "randomores.Chance ore will drop.Iron";
 	private double coalChance;    private String _coalChance    = "randomores.Chance ore will drop.Coal";
 	
-	private double diamondAxe; private String _diamondAxe = "randomores.Tool Effectiveness.DiamondPickAxe";
-	private double goldAxe;    private String _goldAxe    = "randomores.Tool Effectiveness.GoldPickAxe";
-	private double ironAxe;    private String _ironAxe    = "randomores.Tool Effectiveness.IronPickAxe";
-	private double stoneAxe;   private String _stoneAxe   = "randomores.Tool Effectiveness.StonePickAxe";
-	private double woodAxe;    private String _woodAxe    = "randomores.Tool Effectiveness.WoodPickAxe";
+	private double diamondPick; private String _diamondPick = "randomores.Tool Effectiveness.DiamondPickAxe";
+	private double goldPick;    private String _goldPick    = "randomores.Tool Effectiveness.GoldPickAxe";
+	private double ironPick;    private String _ironPick    = "randomores.Tool Effectiveness.IronPickAxe";
+	private double stonePick;   private String _stonePick   = "randomores.Tool Effectiveness.StonePickAxe";
+	private double woodPick;    private String _woodPick    = "randomores.Tool Effectiveness.WoodPickAxe";
 
 	private double fort1; private String _fort1 = "randomores.Enchantment Boost.Fortune1";
 	private double fort2; private String _fort2 = "randomores.Enchantment Boost.Fortune2";
 	private double fort3; private String _fort3 = "randomores.Enchantment Boost.Fortune3";
-
+	private double goldBoost; private String _goldBoost = "randomores.Enchantment Boost.GoldPickAxe";
 
 	
 	
@@ -95,24 +98,25 @@ public class CustomFlags extends JavaPlugin implements Listener{
 			eligableBlocks = tempBlocks;
 		
 	
-		explodeChance = config.getDouble(_explodeChance, 0.1);
-		emeraldChance = config.getDouble(_emeraldChance, 1);
-		diamondChance = config.getDouble(_diamondChance, 5);
-		lapisChance   = config.getDouble(_lapisChance, 5);
-		redstoneChance= config.getDouble(_redstoneChance, 10);
-		goldChance    = config.getDouble(_goldChance, 10);
-		ironChance    = config.getDouble(_ironChance, 15);
-		coalChance    = config.getDouble(_coalChance, 20);
+		explodeChance = config.getDouble(_explodeChance, 0.01);
+		emeraldChance = config.getDouble(_emeraldChance, 0.1);
+		diamondChance = config.getDouble(_diamondChance, 0.5);
+		lapisChance   = config.getDouble(_lapisChance, 0.5);
+		redstoneChance= config.getDouble(_redstoneChance, 1);
+		goldChance    = config.getDouble(_goldChance, 2.5);
+		ironChance    = config.getDouble(_ironChance, 5);
+		coalChance    = config.getDouble(_coalChance, 10);
 		
-		goldAxe    = config.getDouble(_goldAxe, 100);
-		diamondAxe = config.getDouble(_diamondAxe, 20);
-		ironAxe    = config.getDouble(_ironAxe, 0);
-		stoneAxe   = config.getDouble(_stoneAxe, -10);
-		woodAxe    = config.getDouble(_woodAxe, -20);
+		goldPick    = config.getDouble(_goldPick, 100);
+		diamondPick = config.getDouble(_diamondPick, 20);
+		ironPick    = config.getDouble(_ironPick, 0);
+		stonePick   = config.getDouble(_stonePick, -10);
+		woodPick    = config.getDouble(_woodPick, -20);
 		
 		fort1 = config.getDouble(_fort1, 33);
 		fort2 = config.getDouble(_fort2, 75);
 		fort3 = config.getDouble(_fort3, 120);
+		goldBoost = config.getDouble(_goldBoost, 100);
 		
 		outConfig.set(_eligableBlocks, eligableBlocks);
 		
@@ -125,15 +129,16 @@ public class CustomFlags extends JavaPlugin implements Listener{
 		outConfig.set(_ironChance, ironChance);
 		outConfig.set(_coalChance, coalChance);
 		
-		outConfig.set(_goldAxe, goldAxe);
-		outConfig.set(_diamondAxe, diamondAxe);
-		outConfig.set(_ironAxe, ironAxe);
-		outConfig.set(_stoneAxe, stoneAxe);
-		outConfig.set(_woodAxe, woodAxe);
+		outConfig.set(_goldPick, goldPick);
+		outConfig.set(_diamondPick, diamondPick);
+		outConfig.set(_ironPick, ironPick);
+		outConfig.set(_stonePick, stonePick);
+		outConfig.set(_woodPick, woodPick);
 		
 		outConfig.set(_fort1, fort1);
 		outConfig.set(_fort2, fort2);
 		outConfig.set(_fort3, fort3);
+		outConfig.set(_goldBoost, goldBoost);
 
 		saveConfig(outConfig, configPath);
 	}
@@ -178,6 +183,7 @@ public class CustomFlags extends JavaPlugin implements Listener{
 				else{
 					FlagManager.reloadFlags();
 					loadConfig();
+					sender.sendMessage(ChatColor.GREEN + "Flags reloaded");
 				}					
 		}
 		
@@ -187,7 +193,7 @@ public class CustomFlags extends JavaPlugin implements Listener{
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onBreak(BlockBreakEvent event){
 		Player p = event.getPlayer();
-		if(p.getGameMode() != GameMode.SURVIVAL)
+		if(p.getGameMode() == GameMode.CREATIVE)
 			return;
 		Block block = event.getBlock();
 		if(isFlagApplicable(block.getLocation(), randomores) && eligableBlocks.contains(block.getType().toString())){
@@ -195,56 +201,63 @@ public class CustomFlags extends JavaPlugin implements Listener{
 			ItemStack toDrop = null;
 			Location loc = block.getLocation();
 			
+			boolean isWoodAxe = inHand.getType() == Material.WOOD_PICKAXE;
+			boolean isStoneAxe = inHand.getType() == Material.STONE_PICKAXE;
+			
+			boolean silkTouch = inHand.containsEnchantment(Enchantment.SILK_TOUCH);
+			
+			//Get the shift of chance caused by tool
+			double toolShift = 100;
+			switch(inHand.getType()){
+				case DIAMOND_PICKAXE:
+					toolShift += diamondPick;
+					break;
+				case GOLD_PICKAXE:
+					toolShift += goldPick;
+					break;
+				case IRON_PICKAXE:
+					toolShift += ironPick;
+					break;					
+				case STONE_PICKAXE:
+					toolShift += stonePick;
+					break;
+				case WOOD_PICKAXE:
+					toolShift += woodPick;
+					break;
+				default:
+					break;
+			}			
+			toolShift = toolShift / 100;
+			
 			//figure out what block to drop
 			Material mat = Material.STONE;
 			OreDrop drop = new OreDrop(rng.nextDouble() * 100);
 			double ticker = 0;
-			if(drop.isBetween(ticker, ticker += explodeChance)){
+			if(drop.isBetween(ticker, ticker += explodeChance) && !isWoodAxe){
 				p.sendMessage(ChatColor.YELLOW + "Sparks from your tool ignited built up gas!!");
 				block.getWorld().createExplosion(loc, 5.0f, true);
 				return;
 			}
-			else if(drop.isBetween(ticker, ticker += emeraldChance)){
-				mat = Material.EMERALD_ORE;
+			else if(drop.isBetween(ticker, ticker += emeraldChance * toolShift)){
+				mat = (silkTouch) ? Material.EMERALD_ORE : Material.EMERALD;
 			}
-			else if(drop.isBetween(ticker, ticker += diamondChance)){
-				mat = Material.DIAMOND_ORE; 
+			else if(drop.isBetween(ticker, ticker += diamondChance* toolShift) && !isWoodAxe && !isStoneAxe){
+				mat = (silkTouch) ? Material.DIAMOND_ORE : Material.DIAMOND; 
 			}
-			else if(drop.isBetween(ticker, ticker += lapisChance)){
-				mat = Material.LAPIS_ORE;
+			else if(drop.isBetween(ticker, ticker += lapisChance * toolShift)){
+				mat = (silkTouch) ? Material.LAPIS_ORE : Material.INK_SACK;
 			}
-			else if(drop.isBetween(ticker, ticker += redstoneChance)){
-				mat = Material.REDSTONE_ORE;
+			else if(drop.isBetween(ticker, ticker += redstoneChance * toolShift)){
+				mat = (silkTouch) ? Material.REDSTONE_ORE : Material.REDSTONE;
 			}
-			else if(drop.isBetween(ticker, ticker += goldChance)){
+			else if(drop.isBetween(ticker, ticker += goldChance * toolShift) && !isWoodAxe){
 				mat = Material.GOLD_ORE;
 			}
-			else if(drop.isBetween(ticker, ticker += ironChance)){
+			else if(drop.isBetween(ticker, ticker += ironChance * toolShift)){
 				mat = Material.IRON_ORE;
 			}
-			else if(drop.isBetween(ticker, ticker += coalChance)){
-				mat = Material.COAL_ORE;
-			}
-						
-			double toolBonus = 100;
-			switch(inHand.getType()){
-				case DIAMOND_AXE:
-					toolBonus += diamondAxe;
-					break;
-				case GOLD_AXE:
-					toolBonus += goldAxe;
-					break;
-				case IRON_AXE:
-					toolBonus += ironAxe;
-					break;					
-				case STONE_AXE:
-					toolBonus += stoneAxe;
-					break;
-				case WOOD_AXE:
-					toolBonus += woodAxe;
-					break;
-				default:
-					break;
+			else if(drop.isBetween(ticker, ticker += coalChance * toolShift)){
+				mat = (silkTouch) ? Material.COAL_ORE : Material.COAL;
 			}
 						
 			double enchantBonus = 100;			
@@ -264,12 +277,11 @@ public class CustomFlags extends JavaPlugin implements Listener{
 				}
 			}
 			
-			double toolLuck = toolBonus /100, enchantLuck = enchantBonus/100;
-			
-			double luck = toolLuck * enchantLuck;
-			
+			if(inHand.getType() == Material.GOLD_PICKAXE)
+				enchantBonus += goldBoost;
+									
 			int numDrops = 0;
-			double luckLeft = luck;
+			double luckLeft = enchantBonus/100;;
 			
 			//figure out how many extra drops we should add
 			while(luckLeft > 0){
@@ -282,12 +294,38 @@ public class CustomFlags extends JavaPlugin implements Listener{
 			if(numDrops == 0 || mat == Material.STONE)
 				return;
 			
-			toDrop = new ItemStack(mat, numDrops);
+			//Get durability loss
+			double chanceOfLoss = 1;
+			if(inHand.containsEnchantment(Enchantment.DURABILITY)){
+				chanceOfLoss += inHand.getEnchantmentLevel(Enchantment.DURABILITY); 
+			}
+			
+			chanceOfLoss = (100/chanceOfLoss)/100;
+			if(rng.nextDouble() <= chanceOfLoss){
+				inHand.setDurability((short) (inHand.getDurability() + 1));
+			}
+			
+			event.setCancelled(true);
+			
+			block.setType(mat);
+			
+			ItemStack fake = new ItemStack(inHand);
+			fake.setType(Material.DIAMOND_PICKAXE);
+			
+			Collection<ItemStack> items = block.getDrops(fake);
+			
+			int amount = silkTouch ? numDrops : numDrops * items.size();
+			toDrop= new ItemStack(mat, amount);
+			if(mat == Material.INK_SACK){
+				Dye dye = new Dye();
+				dye.setColor(DyeColor.BLUE);
+				toDrop = dye.toItemStack(amount);
+			}
 			block.setType(Material.AIR);
-			block.getWorld().dropItem(loc.add(0.5, 0.5, 0.5), toDrop).setVelocity(new Vector(0, 0.01, 0));
+			block.getWorld().dropItem(loc.add(0.5, 0.5, 0.5), toDrop).setVelocity(
+					new Vector(rng.nextDouble()/2, rng.nextDouble()/2, rng.nextDouble()/2));
 		}
 	}
-	
 	
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onLoseHunger(FoodLevelChangeEvent event){
