@@ -9,7 +9,6 @@ import java.util.Random;
 import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
-import org.bukkit.DyeColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -31,7 +30,6 @@ import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.material.Dye;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -239,16 +237,16 @@ public class CustomFlags extends JavaPlugin implements Listener{
 				return;
 			}
 			else if(drop.isBetween(ticker, ticker += emeraldChance * toolShift)){
-				mat = (silkTouch) ? Material.EMERALD_ORE : Material.EMERALD;
+				mat = Material.EMERALD_ORE;
 			}
 			else if(drop.isBetween(ticker, ticker += diamondChance* toolShift) && !isWoodAxe && !isStoneAxe){
-				mat = (silkTouch) ? Material.DIAMOND_ORE : Material.DIAMOND; 
+				mat = Material.DIAMOND_ORE; 
 			}
 			else if(drop.isBetween(ticker, ticker += lapisChance * toolShift)){
-				mat = (silkTouch) ? Material.LAPIS_ORE : Material.INK_SACK;
+				mat = Material.LAPIS_ORE;
 			}
 			else if(drop.isBetween(ticker, ticker += redstoneChance * toolShift)){
-				mat = (silkTouch) ? Material.REDSTONE_ORE : Material.REDSTONE;
+				mat = Material.REDSTONE_ORE;
 			}
 			else if(drop.isBetween(ticker, ticker += goldChance * toolShift) && !isWoodAxe){
 				mat = Material.GOLD_ORE;
@@ -257,7 +255,7 @@ public class CustomFlags extends JavaPlugin implements Listener{
 				mat = Material.IRON_ORE;
 			}
 			else if(drop.isBetween(ticker, ticker += coalChance * toolShift)){
-				mat = (silkTouch) ? Material.COAL_ORE : Material.COAL;
+				mat = Material.COAL_ORE;
 			}
 						
 			double enchantBonus = 100;			
@@ -307,23 +305,26 @@ public class CustomFlags extends JavaPlugin implements Listener{
 			
 			event.setCancelled(true);
 			
-			block.setType(mat);
-			
-			ItemStack fake = new ItemStack(inHand);
-			fake.setType(Material.DIAMOND_PICKAXE);
-			
-			Collection<ItemStack> items = block.getDrops(fake);
-			
-			int amount = silkTouch ? numDrops : numDrops * items.size();
-			toDrop= new ItemStack(mat, amount);
-			if(mat == Material.INK_SACK){
-				Dye dye = new Dye();
-				dye.setColor(DyeColor.BLUE);
-				toDrop = dye.toItemStack(amount);
+			if(!silkTouch){
+				block.setType(mat);
+				
+				ItemStack fake = new ItemStack(inHand);
+				fake.setType(Material.DIAMOND_PICKAXE);
+				
+				Collection<ItemStack> items = block.getDrops(fake);
+				numDrops *= items.size();
+				for(ItemStack item : items){
+					toDrop = new ItemStack(item);
+					break;
+				}
+				toDrop.setAmount(numDrops);
 			}
+			
+			if(toDrop == null)
+				toDrop= new ItemStack(mat, numDrops);
 			block.setType(Material.AIR);
 			block.getWorld().dropItem(loc.add(0.5, 0.5, 0.5), toDrop).setVelocity(
-					new Vector(rng.nextDouble()/2, rng.nextDouble()/2, rng.nextDouble()/2));
+					new Vector(rng.nextDouble()/10, rng.nextDouble()/10, rng.nextDouble()/10));
 		}
 	}
 	
