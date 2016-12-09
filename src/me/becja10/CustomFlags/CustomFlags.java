@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.logging.Logger;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -82,6 +83,7 @@ public class CustomFlags extends JavaPlugin implements Listener{
 	private final String randomores = "randomores";
 	private final String noportals = "noportals";
 	private final String noteleport = "noteleport";
+	private final String noplants = "noplants";
 	
 	private void loadConfig(){
 		configPath = this.getDataFolder().getAbsolutePath() + File.separator + "config.yml";
@@ -182,7 +184,43 @@ public class CustomFlags extends JavaPlugin implements Listener{
 					FlagManager.reloadFlags();
 					loadConfig();
 					sender.sendMessage(ChatColor.GREEN + "Flags reloaded");
-				}					
+				}
+				break;
+			case "addflag":
+				if(!sender.hasPermission("customflags.addflag")){
+					sender.sendMessage(ChatColor.RED + "You don't have permission.");
+					return true;
+				}
+				else{
+					String region = "";
+					String flag = "";
+					String world = "";
+					if(args.length >= 2){
+						
+						if(!(sender instanceof Player) && args.length < 3){
+							sender.sendMessage("Must provide world name from console.");
+							return true;
+						}
+						region = args[0];
+						flag = args[1];
+						world = (args.length == 3) ? args[2] : ((Player)sender).getWorld().getName();
+						
+						if(Bukkit.getWorld(world) == null){
+							sender.sendMessage(ChatColor.RED + "World does not exist.");
+						}
+						else if(wg.getRegionManager(Bukkit.getWorld(world)).getRegion(region) == null){
+							sender.sendMessage(ChatColor.RED + "That region does not exist in this world.");
+						}
+						else{
+							FlagManager.addFlag(world, region, flag);
+							sender.sendMessage(ChatColor.GREEN + "Flag added.");
+						}						
+					}
+					else{
+						return false;
+					}
+				}
+				break;
 		}
 		
 		return true;

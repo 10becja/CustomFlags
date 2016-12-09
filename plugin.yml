@@ -1,5 +1,5 @@
 name: CustomFlags
-version: 1.0.1
+version: 1.1.0
 main: me.becja10.CustomFlags.CustomFlags
 depend: [WorldGuard]
 description: allows adding custom flags to regions
@@ -7,4 +7,7 @@ commands:
   loadflags:
     description: load up any changes to the flag file
     usage: /loadflags
+  addflag:
+    description: adds a flag to a region
+    usage: /addflag <region> <flag> [world]
   
