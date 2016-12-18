@@ -50,7 +50,9 @@ public class FlagManager {
 		header += "nomobdamage: Prevent taking damage from mobs\n";
 		header += "nohunger: Prevent losing hunger\n";
 		header += "noportals: Prevent nether portals from being generated\n";
-		header += "noteleport: Prevent any form of teleporting into or out of an area. Add customflags.bypass.noteleport to bypass";
+		header += "noteleport: Prevent any form of teleporting into or out of an area. Add customflags.bypass.noteleport to bypass\n";
+		header += "noplants: Prevent plants from growing by themselves\n";
+		header += "noanimals: Prevents animals from breeding or laying eggs\n";
 		config.options().header(header);
 		config.options().copyHeader(true);
 		
@@ -60,5 +62,12 @@ public class FlagManager {
 	public static boolean hasFlag(String world, String region, String flag){
 		List<String> flags = config.getStringList(world + "." + region);
 		return flags.contains(flag);
+	}
+	
+	public static void addFlag(String world, String region, String flag){
+		List<String> flags = config.getStringList(world + "." + region);
+		flags.add(flag);
+		config.set(world + "." + region, flags);
+		saveFlags();
 	}
 }

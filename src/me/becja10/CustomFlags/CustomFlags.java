@@ -3,11 +3,16 @@ package me.becja10.CustomFlags;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 import java.util.logging.Logger;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -19,13 +24,25 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Ageable;
+import org.bukkit.entity.Chicken;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockGrowEvent;
+import org.bukkit.event.block.BlockSpreadEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.entity.ItemSpawnEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
@@ -48,6 +65,9 @@ public class CustomFlags extends JavaPlugin implements Listener{
 	
 	private WorldGuardPlugin wg = WGBukkit.getPlugin();
 	private Random rng = new Random(System.currentTimeMillis());
+	
+	private HashMap<Location, Block> boneMealBlocks = new HashMap<Location, Block>();
+	private HashSet<UUID> droppedEggs = new HashSet<UUID>();
 	
 	private String configPath;
 	private FileConfiguration config;
@@ -82,6 +102,8 @@ public class CustomFlags extends JavaPlugin implements Listener{
 	private final String randomores = "randomores";
 	private final String noportals = "noportals";
 	private final String noteleport = "noteleport";
+	private final String noplants = "noplants";
+	private final String noanimals = "noanimals";
 	
 	private void loadConfig(){
 		configPath = this.getDataFolder().getAbsolutePath() + File.separator + "config.yml";
@@ -182,7 +204,43 @@ public class CustomFlags extends JavaPlugin implements Listener{
 					FlagManager.reloadFlags();
 					loadConfig();
 					sender.sendMessage(ChatColor.GREEN + "Flags reloaded");
-				}					
+				}
+				break;
+			case "addflag":
+				if(!sender.hasPermission("customflags.addflag")){
+					sender.sendMessage(ChatColor.RED + "You don't have permission.");
+					return true;
+				}
+				else{
+					String region = "";
+					String flag = "";
+					String world = "";
+					if(args.length >= 2){
+						
+						if(!(sender instanceof Player) && args.length < 3){
+							sender.sendMessage("Must provide world name from console.");
+							return true;
+						}
+						region = args[0];
+						flag = args[1];
+						world = (args.length == 3) ? args[2] : ((Player)sender).getWorld().getName();
+						
+						if(Bukkit.getWorld(world) == null){
+							sender.sendMessage(ChatColor.RED + "World does not exist.");
+						}
+						else if(wg.getRegionManager(Bukkit.getWorld(world)).getRegion(region) == null){
+							sender.sendMessage(ChatColor.RED + "That region does not exist in this world.");
+						}
+						else{
+							FlagManager.addFlag(world, region, flag);
+							sender.sendMessage(ChatColor.GREEN + "Flag added.");
+						}						
+					}
+					else{
+						return false;
+					}
+				}
+				break;
 		}
 		
 		return true;
@@ -376,6 +434,95 @@ public class CustomFlags extends JavaPlugin implements Listener{
 				event.setCancelled(true);
 				return;
 			}
+		}
+	}
+	
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onInteract(PlayerInteractEvent event){
+		Block block = event.getClickedBlock();
+		if(block != null && isFlagApplicable(block.getLocation(), noplants)){
+			ItemStack item = event.getItem();
+			if(item != null && item.getType() == Material.INK_SACK && item.getDurability() == (short)15){ //bonemeal
+				boneMealBlocks.put(block.getLocation(), block);
+			}
+		}
+	}
+	
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onGrow(BlockGrowEvent event){
+		Block block = event.getBlock();
+		if(isFlagApplicable(block.getLocation(), noplants)){
+			Block b = boneMealBlocks.remove(block.getLocation());
+			if(b != null && b.getType() == event.getBlock().getType()){
+				return; //don't cancel bonemeal from growing blocks if used by the player
+			}
+			
+			Material newMat = event.getNewState().getType();
+			List<Material> good = Arrays.asList(Material.LONG_GRASS, Material.RED_ROSE, Material.YELLOW_FLOWER);
+					
+			if(good.contains(newMat)){
+				return;
+			}
+			event.setCancelled(true);
+		}
+	}
+	
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onSpread(BlockSpreadEvent event){
+		if(isFlagApplicable(event.getBlock().getLocation(), noplants)){
+			Material newMat = event.getNewState().getType();
+			List<Material> bad = Arrays.asList(Material.CHORUS_FLOWER);
+			
+			if(bad.contains(newMat)){
+				event.setCancelled(true);
+			}
+		}
+	}
+	
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onFeed(PlayerInteractEntityEvent event){
+		Entity thing = event.getRightClicked();
+		if(thing != null && isFlagApplicable(thing.getLocation(), noanimals)){
+			if(thing instanceof Ageable){
+				Ageable age = (Ageable) thing;
+				if(age.canBreed())
+					age.setBreed(false); //don't allow animals in regions to breed, try to be nice and don't let players feed them
+			}
+		}
+	}
+	
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onBreed(CreatureSpawnEvent event){
+		if(event.getSpawnReason() == SpawnReason.BREEDING && isFlagApplicable(event.getLocation(), noanimals)){
+			event.setCancelled(true);
+		}
+	}
+	
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onLayEgg(ItemSpawnEvent event){
+		Item item = event.getEntity();
+		if(droppedEggs.contains(item.getUniqueId())){
+			droppedEggs.remove(item.getUniqueId()); //don't cancel dropped items. Will make players mad
+			return;
+		}
+		ItemStack stack = item.getItemStack();
+		if(stack.getType() == Material.EGG && isFlagApplicable(event.getLocation(), noanimals)){
+			List<Entity> nearby = item.getNearbyEntities(1, 1, 1);
+			for(Entity near : nearby){
+				if(near instanceof Chicken){
+					event.setCancelled(true);
+					break;
+				}
+			}
+		}
+	}
+	
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onDrop(PlayerDropItemEvent event){
+		Item item = event.getItemDrop();
+		ItemStack stack = item.getItemStack();
+		if(stack.getType() == Material.EGG && isFlagApplicable(item.getLocation(), noanimals)){
+			droppedEggs.add(item.getUniqueId());
 		}
 	}
 	
