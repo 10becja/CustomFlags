@@ -25,6 +25,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockGrowEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
@@ -84,6 +87,7 @@ public class CustomFlags extends JavaPlugin implements Listener{
 	private final String noportals = "noportals";
 	private final String noteleport = "noteleport";
 	private final String noplants = "noplants";
+	private final String noanimals = "noanimals";
 	
 	private void loadConfig(){
 		configPath = this.getDataFolder().getAbsolutePath() + File.separator + "config.yml";
@@ -415,6 +419,19 @@ public class CustomFlags extends JavaPlugin implements Listener{
 				return;
 			}
 		}
+	}
+	
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onGrow(BlockGrowEvent event){
+		if(isFlagApplicable(event.getBlock().getLocation(), noplants)){
+			event.setCancelled(true);
+		}
+	}
+	
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onBreed(CreatureSpawnEvent event){
+		if(event.getSpawnReason() == SpawnReason.BREEDING && isFlagApplicable(event.getLocation(), noanimals))
+			event.setCancelled(true);
 	}
 	
 	private boolean isFlagApplicable(Location loc, String flag){

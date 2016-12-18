@@ -51,7 +51,8 @@ public class FlagManager {
 		header += "nohunger: Prevent losing hunger\n";
 		header += "noportals: Prevent nether portals from being generated\n";
 		header += "noteleport: Prevent any form of teleporting into or out of an area. Add customflags.bypass.noteleport to bypass\n";
-		header += "noplants: Prevent plants from growing by themselves";
+		header += "noplants: Prevent plants from growing by themselves\n";
+		header += "noanimals: Prevents animals from breeding or laying eggs\n";
 		config.options().header(header);
 		config.options().copyHeader(true);
 		
